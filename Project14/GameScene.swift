@@ -12,6 +12,8 @@ class GameScene: SKScene {
     }
     var popupTime = 0.85
     var numRounds = 0
+    var gameStarted = false
+    var gameOver: SKSpriteNode!
     
     override func didMove(to view: SKView) {
         let background = SKSpriteNode(imageNamed: "whackBackground")
@@ -31,14 +33,15 @@ class GameScene: SKScene {
         for i in 0 ..< 4 { createSlot(at: CGPoint(x: 180 + (i * 170), y: 320)) }
         for i in 0 ..< 5 { createSlot(at: CGPoint(x: 100 + (i * 170), y: 230)) }
         for i in 0 ..< 4 { createSlot(at: CGPoint(x: 180 + (i * 170), y: 140)) }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            [unowned self] in
-            self.createEnemy()
-        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
+        print("I'm the touchesBegan() function")
+        
+        if gameStarted == false {
+            startGame()
+        }
         if let touch = touches.first {
             let location = touch.location(in: self)
             let tappedNodes = nodes(at: location)
@@ -70,6 +73,28 @@ class GameScene: SKScene {
         }
     }
     
+    func startGame() {
+        
+        print("I'm the startGame() function")
+        
+        numRounds = 0
+        
+        if gameOver != nil {
+            if gameOver.isHidden == false {
+                gameOver.isHidden = true
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            [unowned self] in
+            self.createEnemy()
+            
+            self.score = 0
+            self.gameStarted = true
+            
+        }
+    }
+    
     func createSlot(at position: CGPoint) {
         let slot = WhackSlot()
         slot.configure(at: position)
@@ -78,17 +103,22 @@ class GameScene: SKScene {
     }
     
     func createEnemy() {
+        
+        print("I'm the createEnemy() function")
+        
         numRounds += 1
         
-        if numRounds >= 30 {
+        if numRounds >= 3 {        // > means 'greater than' : Default value should be 30 (changed to 3 for testing)
             for slot in slots {
                 slot.hide()
             }
             
-            let gameOver = SKSpriteNode(imageNamed: "gameOver")
+            gameOver = SKSpriteNode(imageNamed: "gameOver")
             gameOver.position = CGPoint(x: 512, y: 384)
             gameOver.zPosition = 1
             addChild(gameOver)
+            
+            gameStarted = false
             
             return
         }
