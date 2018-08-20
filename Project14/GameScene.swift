@@ -10,10 +10,14 @@ class GameScene: SKScene {
             gameScore.text = "Score: \(score)"
         }
     }
+    var highScoreLabel: SKLabelNode!
     var popupTime = 0.85
     var numRounds = 0
     var gameStarted = false
     var gameOver: SKSpriteNode!
+    var touchToBegin: SKLabelNode!
+    let defaults = UserDefaults.standard
+    var highScore = 0
     
     override func didMove(to view: SKView) {
         let background = SKSpriteNode(imageNamed: "whackBackground")
@@ -22,12 +26,28 @@ class GameScene: SKScene {
         background.zPosition = -1
         addChild(background)
         
+        touchToBegin = SKLabelNode(fontNamed: "ChalkboardSE-Bold")
+        touchToBegin.text = "Tap anywhere to begin"
+        touchToBegin.position = CGPoint(x: frame.midX, y: frame.midY)
+        touchToBegin.fontSize = 70
+        touchToBegin.zPosition = 2
+        addChild(touchToBegin)
+        
         gameScore = SKLabelNode(fontNamed: "Chalkduster")
         gameScore.text = "Score: 0"
         gameScore.position = CGPoint(x: 8, y: 8)
         gameScore.horizontalAlignmentMode = .left
         gameScore.fontSize = 48
         addChild(gameScore)
+        
+        highScore = defaults.object(forKey: "highScore") as? Int ?? 0
+        
+        highScoreLabel = SKLabelNode(fontNamed: "Chalkduster")
+        highScoreLabel.text = "High score: \(highScore)"
+        highScoreLabel.position = CGPoint(x: frame.maxX - 8, y: 8)
+        highScoreLabel.horizontalAlignmentMode = .right
+        highScoreLabel.fontSize = 48
+        addChild(highScoreLabel)
         
         for i in 0 ..< 5 { createSlot(at: CGPoint(x: 100 + (i * 170), y: 410)) }
         for i in 0 ..< 4 { createSlot(at: CGPoint(x: 180 + (i * 170), y: 320)) }
@@ -79,6 +99,10 @@ class GameScene: SKScene {
         
         numRounds = 0
         
+        if touchToBegin != nil {
+            touchToBegin.isHidden = true
+        }
+        
         if gameOver != nil {
             if gameOver.isHidden == false {
                 gameOver.isHidden = true
@@ -108,7 +132,7 @@ class GameScene: SKScene {
         
         numRounds += 1
         
-        if numRounds >= 3 {        // > means 'greater than' : Default value should be 30 (changed to 3 for testing)
+        if numRounds >= 50 {
             for slot in slots {
                 slot.hide()
             }
@@ -119,6 +143,10 @@ class GameScene: SKScene {
             addChild(gameOver)
             
             gameStarted = false
+            
+            if score > highScore {
+                persistHighScore()
+            }
             
             return
         }
@@ -149,5 +177,14 @@ class GameScene: SKScene {
             [unowned self] in
             self.createEnemy()
         }
+    }
+    
+    func persistHighScore() {
+        
+        print("I'm the persistHighScore() function")
+        
+        highScore = score
+        defaults.set(highScore, forKey: "highScore")
+        highScoreLabel.text = "High score: \(highScore)"
     }
 }
