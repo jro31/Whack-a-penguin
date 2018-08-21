@@ -4,20 +4,37 @@ import GameplayKit
 class GameScene: SKScene {
     
     var slots = [WhackSlot]()
+    
     var gameScore: SKLabelNode!
+    var gameScoreScore: SKLabelNode!
     var score = 0 {
         didSet {
-            gameScore.text = "Score: \(score)"
+            gameScoreScore.text = "\(score)"
+            if score > 0 {
+                let comeOut = SKAction.scaleX(to: 3, y: 3, duration: 0.25)
+                let goBack = SKAction.scaleX(to: 1, y: 1, duration: 0.25)
+                let comeAndGo = SKAction.sequence([comeOut, goBack])
+                gameScoreScore.run(comeAndGo)
+            }
+            if score < 0 {
+                gameScoreScore.fontColor = UIColor.red
+            }
+            if score == 0 {
+                gameScoreScore.fontColor = UIColor.white
+            }
         }
     }
     var highScoreLabel: SKLabelNode!
+    var highScore = 0
+    
     var popupTime = 0.85
     var numRounds = 0
+    
     var gameStarted = false
     var gameOver: SKSpriteNode!
+    
     var touchToBegin: SKLabelNode!
     let defaults = UserDefaults.standard
-    var highScore = 0
     
     override func didMove(to view: SKView) {
         let background = SKSpriteNode(imageNamed: "whackBackground")
@@ -33,12 +50,21 @@ class GameScene: SKScene {
         touchToBegin.zPosition = 2
         addChild(touchToBegin)
         
+        animateTouchToBegin()
+        
         gameScore = SKLabelNode(fontNamed: "Chalkduster")
-        gameScore.text = "Score: 0"
+        gameScore.text = "Score:"
         gameScore.position = CGPoint(x: 8, y: 8)
         gameScore.horizontalAlignmentMode = .left
         gameScore.fontSize = 48
         addChild(gameScore)
+        
+        gameScoreScore = SKLabelNode(fontNamed: "Chalkduster")
+        gameScoreScore.text = " 0"
+        gameScoreScore.position = CGPoint(x: 175, y: 0)
+        gameScoreScore.horizontalAlignmentMode = .left
+        gameScoreScore.fontSize = 48
+        gameScore.addChild(gameScoreScore)
         
         highScore = defaults.object(forKey: "highScore") as? Int ?? 0
         
@@ -117,6 +143,14 @@ class GameScene: SKScene {
             self.gameStarted = true
             
         }
+    }
+    
+    func animateTouchToBegin() {
+        let rightAction = SKAction.rotate(toAngle: 0.16, duration: 0.5)
+        let leftAction = SKAction.rotate(toAngle: -0.16, duration: 0.5)
+        let rightLeftAction = SKAction.sequence([rightAction, leftAction])
+        let jumpForever = SKAction.repeatForever(rightLeftAction)
+        touchToBegin.run(jumpForever)
     }
     
     func createSlot(at position: CGPoint) {
